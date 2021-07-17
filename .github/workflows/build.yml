@@ -40,7 +40,7 @@ jobs:
     - name: Run PlatformIO
       run: pio run
       
-    - name: Release bin
+    - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
         name: firmware
@@ -51,7 +51,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: .pio/build/esp01_1m/firmware.bin
-        asset_name: firmware
+        asset_name: firmware.bin
         tag: ${{ github.ref }}
         overwrite: true
         body: "CI release"
