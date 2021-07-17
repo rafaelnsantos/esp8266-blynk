@@ -29,19 +29,21 @@ char hostString[16] = {0};
 void setup()
 {
   Serial.begin(115200);
-  pinMode(Erasing_button, INPUT);
+
+  // pinMode(Erasing_button, INPUT);
 
   for (uint8_t t = 4; t > 0; t--)
   {
     Serial.println(t);
     delay(1000);
   }
-  Serial.println(digitalRead(Erasing_button));
-  // Press and hold the button to erase all the credentials
-  if (digitalRead(Erasing_button) == LOW)
-  {
-    Credentials.Erase_eeprom();
-  }
+  // Serial.println(digitalRead(Erasing_button));
+  // // Press and hold the button to erase all the credentials
+  // if (digitalRead(Erasing_button) == LOW)
+  // {
+  //   Credentials.Erase_eeprom();
+  // }
+
   sprintf(hostString, "ESP_%06X", ESP.getChipId());
   String auth_string = Credentials.EEPROM_Config();
   auth_string.toCharArray(auth_token, 33);

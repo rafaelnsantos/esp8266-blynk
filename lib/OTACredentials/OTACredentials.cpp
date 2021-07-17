@@ -185,8 +185,32 @@ void _webSocketEventST(uint8_t numm, WStype_t type, uint8_t *payload, size_t len
 
 		if (type.equals("update"))
 		{
+			String url = doc["url"];
+			String update_status = F("Checking for update...\n");
 			WiFiClient client;
-			t_httpUpdate_return ret = ESPhttpUpdate.update(client, "192.168.0.200", 8000, "/firmware.bin");
+
+			t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
+
+			update_status += F("Returned: ");
+			switch (ret)
+			{
+			case HTTP_UPDATE_FAILED:
+				update_status += "Update failed:\nLastError: ";
+				update_status += ESPhttpUpdate.getLastError();
+				update_status += "\nError: ";
+				update_status += ESPhttpUpdate.getLastErrorString().c_str();
+				update_status += "\n";
+				break;
+
+			case HTTP_UPDATE_NO_UPDATES:
+				update_status += F("No Update Available.\n");
+				break;
+
+			case HTTP_UPDATE_OK:
+				update_status += F("Updated OK.\n");
+				break;
+			}
+			Serial.println(update_status);
 		}
 
 		if (type.equals("config"))

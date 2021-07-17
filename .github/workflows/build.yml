@@ -40,12 +40,6 @@ jobs:
     - name: Run PlatformIO
       run: pio run
       
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: firmware
-        path: .pio/build/esp01_1m/firmware.bin
-
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
