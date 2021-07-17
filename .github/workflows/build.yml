@@ -16,22 +16,32 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+
     - name: Cache PlatformIO
       uses: actions/cache@v2
       with:
         path: ~/.platformio
         key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+    - name: Cache Build
+      uses: actions/cache@v2
+      with:
+        path: .pio
+        key: ${{ runner.os }}-pio
+
     - name: Set up Python
       uses: actions/setup-python@v2
+
     - name: Install PlatformIO
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade platformio
+
     - name: Run PlatformIO
       run: pio run
       
     - name: Release bin
       uses: actions/upload-artifact@v2
       with:
-        name: my-artifact
+        name: firmware
         path: .pio/build/esp01_1m/firmware.bin
