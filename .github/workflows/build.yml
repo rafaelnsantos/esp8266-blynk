@@ -45,4 +45,13 @@ jobs:
       with:
         name: firmware
         path: .pio/build/esp01_1m/firmware.bin
-        
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: .pio/build/esp01_1m/firmware.bin
+        asset_name: firmware
+        tag: ${{ github.ref }}
+        overwrite: true
+        body: "CI release"
