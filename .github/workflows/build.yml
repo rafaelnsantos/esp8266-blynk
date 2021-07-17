@@ -29,3 +29,9 @@ jobs:
         pip install --upgrade platformio
     - name: Run PlatformIO
       run: pio run
+      
+    - name: Release bin
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: .pio/build/esp01_1m/firmware.bin
