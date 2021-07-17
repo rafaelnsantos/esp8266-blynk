@@ -14,5 +14,9 @@ public:
   String getSSID();
   String getPassword();
   String getAuth();
+
+private:
+  String read(int init, int end);
+  void save(String string, int init, int end);
 };
 

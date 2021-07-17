@@ -1,7 +1,10 @@
 #include <Arduino.h>
 #include "OTACredentials.h"
 #include <BlynkSimpleEsp8266.h>
+#include <ESP8266mDNS.h>
 #include <ArduinoOTA.h>
+
+#define ATOMIC_FS_UPDATE
 
 credentials Credentials;
 
@@ -11,8 +14,8 @@ bool connected_to_internet = 0;
 const int Erasing_button = 0;
 
 //Provide credentials for your ESP server
-char *esp_ssid = "techiesms";
 char *esp_pass = "";
+char hostString[16] = {0};
 
 //
 //
@@ -33,13 +36,13 @@ void setup()
     Serial.println(t);
     delay(1000);
   }
-
+  Serial.println(digitalRead(Erasing_button));
   // Press and hold the button to erase all the credentials
-  // if (digitalRead(Erasing_button) == LOW)
-  // {
-  //   Credentials.Erase_eeprom();
-  // }
-
+  if (digitalRead(Erasing_button) == LOW)
+  {
+    Credentials.Erase_eeprom();
+  }
+  sprintf(hostString, "ESP_%06X", ESP.getChipId());
   String auth_string = Credentials.EEPROM_Config();
   auth_string.toCharArray(auth_token, 33);
 
@@ -51,12 +54,21 @@ void setup()
   }
   else
   {
-    Credentials.setupAP(esp_ssid, esp_pass);
+    Credentials.setupAP(hostString, esp_pass);
     connected_to_internet = 0;
   }
 
   if (connected_to_internet)
   {
+
+    if (!MDNS.begin(hostString)) {             // Start the mDNS responder for esp8266.local
+        Serial.println("Error setting up MDNS responder!");
+    } else {
+      MDNS.addService("esp", "tcp", 8266);
+    }
+
+    Credentials.setupST();
+
     ArduinoOTA.onStart([]()
                        { Serial.println("Inicio..."); });
     ArduinoOTA.onEnd([]()
@@ -92,8 +104,6 @@ void setup()
 
 void loop()
 {
-  Serial.println(digitalRead(Erasing_button));
-
   Credentials.server_loops();
 
   if (connected_to_internet)
@@ -107,7 +117,6 @@ void loop()
     // .
     //
     //
-
     Blynk.run();
   }
 }

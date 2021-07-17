@@ -2,6 +2,10 @@
 
 #include "OTAEEPROM.h"
 
+// SSID = 0 to 31
+// PASS = 32 to 63
+// BLYNK = 64 to 99
+
 OTAEEPROM::OTAEEPROM()
 {
 	Serial.println("initializing eeprom");
@@ -11,57 +15,62 @@ OTAEEPROM::OTAEEPROM()
 void OTAEEPROM::saveSSID(String ssid)
 {
 	Serial.println("writing eeprom ssid:");
-	for (int i = 0; i < ssid.length(); ++i)
-	{
-		EEPROM.write(i, ssid[i]);
-		Serial.print("Wrote: ");
-		Serial.println(ssid[i]);
-	}
+	save(ssid, 0, 32);
 }
 
 void OTAEEPROM::savePassword(String password)
 {
 	Serial.println("writing eeprom pass:");
-	for (int i = 0; i < password.length(); ++i)
-	{
-		EEPROM.write(32 + i, password[i]);
-		Serial.print("Wrote: ");
-		Serial.println(password[i]);
-	}
+	save(password, 32, 64);
 }
 
 void OTAEEPROM::saveAuth(String auth)
 {
-	Serial.println("writing eeprom auth token:");
-	for (int i = 0; i < auth.length(); ++i)
-	{
-		EEPROM.write(64 + i, auth[i]);
-		Serial.print("Wrote: ");
-		Serial.println(auth[i]);
-	}
+	Serial.println("writing eeprom blynk:");
+	save(auth, 64, 100);
 	EEPROM.commit();
 }
 
 String OTAEEPROM::getSSID()
 {
-	String ssid = "";
-	for (int i = 0; i < 32; ++i)
-	{
-		ssid += char(EEPROM.read(i));
-	}
+	String ssid = read(0, 32);
+
 	Serial.print("SSID: ");
 	Serial.println(ssid);
 
 	return ssid;
 }
 
+String OTAEEPROM::read(int init, int end){
+	char c;
+	int i;
+
+	String aux = "";
+
+	for (i = init, c = char(EEPROM.read(i)); i < end && c != NULL; ++i, c = char(EEPROM.read(i)) ) {
+		aux += c;
+	}
+
+	return aux;
+}
+
+void OTAEEPROM::save(String value, int init, int end) {
+	for (int i = init; i < end; ++i)
+	{
+		EEPROM.write(i, 0);
+	}
+
+	for (int i = 0; i < value.length(); ++i)
+	{
+		EEPROM.write(init + i, value[i]);
+		Serial.print("Wrote: ");
+		Serial.println(value[i]);
+	}
+}
+
 String OTAEEPROM::getPassword()
 {
-	String pass = "";
-	for (int i = 32; i < 64; ++i)
-	{
-		pass += char(EEPROM.read(i));
-	}
+	String pass = read(32, 64);
 
 	Serial.print("Password: ");
 	Serial.println(pass);
@@ -70,11 +79,8 @@ String OTAEEPROM::getPassword()
 
 String OTAEEPROM::getAuth()
 {
-	String auth_token = "";
-	for (int i = 64; i < 100; ++i)
-	{
-		auth_token += char(EEPROM.read(i));
-	}
+	String auth_token = read(64, 100);
+
 	Serial.print("Auth Token: ");
 	Serial.println(auth_token);
 	return auth_token;

@@ -7,6 +7,7 @@ bool checking;
 NonBlockDelay d;
 uint8_t num;
 int c;
+String _token;
 
 void onScanComplete(int networksFound)
 {
@@ -117,7 +118,6 @@ void _webSocketEvent(uint8_t numm, WStype_t type, uint8_t *payload, size_t lengt
 			eeprom.saveAuth(auth);
 
 			webSocket.sendTXT(num, "{\"type\": \"auth\", \"status\": true}");
-			delay(2000);
 
 			//Restarting ESP board
 			ESP.restart();
@@ -146,6 +146,60 @@ void _webSocketEvent(uint8_t numm, WStype_t type, uint8_t *payload, size_t lengt
 	}
 }
 
+void _webSocketEventST(uint8_t numm, WStype_t type, uint8_t *payload, size_t length)
+{
+	switch (type)
+	{
+	case WStype_TEXT:
+	{
+		Serial.printf("[%u] get Text: %s\n", numm, payload);
+
+		String message = String((char *)(payload));
+		Serial.println(message);
+
+		//JSON part
+		DynamicJsonDocument doc(1024);
+		DeserializationError error = deserializeJson(doc, message);
+
+		String type = doc["type"];
+
+		if (type.equals("reset"))
+		{
+
+			eeprom.erase(true);
+			//Restarting ESP board
+			ESP.restart();
+		}
+
+		if (type.equals("auth"))
+		{
+			String auth = doc["auth"];
+
+			eeprom.saveAuth(auth);
+
+			webSocket.sendTXT(num, "{\"type\": \"auth\", \"status\": true}");
+
+			//Restarting ESP board
+			ESP.restart();
+		}
+
+		if (type.equals("update"))
+		{
+			WiFiClient client;
+			t_httpUpdate_return ret = ESPhttpUpdate.update(client, "192.168.0.200", 8000, "/firmware.bin");
+		}
+
+		if (type.equals("config"))
+		{
+			String msg = "{\"type\": \"config\", \"token\":\"" + _token +"\"}";
+			Serial.println(msg);
+			webSocket.sendTXT(num, msg);
+		}
+	}
+	break;
+	}
+}
+
 void credentials::Erase_eeprom()
 {
 	eeprom.erase(true);
@@ -164,6 +218,7 @@ String credentials::EEPROM_Config()
 	pass = eeprom.getPassword();
 
 	String auth_token = eeprom.getAuth();
+	_token = auth_token;
 
 	return auth_token;
 }
@@ -193,10 +248,15 @@ void credentials::setupAP(char *softap_ssid, char *softap_pass)
 
 	Serial.println("softap");
 
-	_launchWeb();
 	Serial.println("Server Started");
 	webSocket.begin();
 	webSocket.onEvent(_webSocketEvent);
+}
+
+void credentials::setupST()
+{
+	webSocket.begin();
+	webSocket.onEvent(_webSocketEventST);
 }
 
 bool credentials::_testWifi()
@@ -220,15 +280,6 @@ bool credentials::_testWifi()
 	Serial.println("");
 	Serial.println("Connect timed out, opening AP");
 	return false;
-}
-
-void credentials::_launchWeb()
-{
-	Serial.println("");
-	Serial.print("SoftAP IP: ");
-	Serial.println(WiFi.softAPIP());
-
-	webServer.begin();
 }
 
 void credentials::server_loops()

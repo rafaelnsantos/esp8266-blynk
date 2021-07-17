@@ -1,5 +1,4 @@
 node_modules
-/data
 /*.log
 .pio
 .vscode/.browse.c_cpp.db*
