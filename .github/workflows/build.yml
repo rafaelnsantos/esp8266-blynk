@@ -7,6 +7,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
     - uses: actions/checkout@v2
     - name: Cache pip
@@ -39,6 +42,11 @@ jobs:
 
     - name: Run PlatformIO
       run: pio run
+
+    - id: tag
+      uses: rymndhng/release-on-push-action@master
+      with:
+        bump_version_scheme: minor
       
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
@@ -46,6 +54,6 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: .pio/build/esp01_1m/firmware.bin
         asset_name: firmware.bin
-        tag: ${{ github.ref }}
+        tag: ${{ steps.tag.outputs.version }}
         overwrite: true
         body: "CI release"
