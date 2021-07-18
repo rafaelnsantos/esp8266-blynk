@@ -43,10 +43,11 @@ jobs:
     - name: Run PlatformIO
       run: pio run
 
-    - id: tag
+    - id: release
       uses: rymndhng/release-on-push-action@master
       with:
         bump_version_scheme: minor
+        tag_prefix: v
       
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
@@ -54,6 +55,5 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: .pio/build/esp01_1m/firmware.bin
         asset_name: firmware.bin
-        tag: ${{ steps.tag.outputs.version }}
-        overwrite: true
+        tag: ${{ steps.release.outputs.version }}
         body: "CI release"
