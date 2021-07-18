@@ -7,30 +7,34 @@ bool checking;
 NonBlockDelay d;
 uint8_t num;
 int c;
-String _token;
 
 void onScanComplete(int networksFound)
 {
 	Serial.print(networksFound);
 	Serial.println(" network(s) found");
 
-	// String connections = "{\"type\": \"scan\"";
-	String connections = "{\"type\": \"scan\", \"connections\": [";
+	DynamicJsonDocument responseDoc(400);
+	JsonObject response = responseDoc.to<JsonObject>();
+
+	response["type"] = "scan";
+	JsonArray connections = response.createNestedArray("connections");
+
 
 	for (int i = 0; i < networksFound; ++i)
-	{ // [{"name": "asdasd", "signal": 88, "encryption": true}]
-		// connections += ",\"" + String(WiFi.SSID(i)) + "\": {\"signal\":" + String(WiFi.RSSI(i)) + ",\"encryption\":" + String((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? "false" : "true") + "}";
-		connections += "{\"name\": \"" + String(WiFi.SSID(i)) + "\", \"signal\": " + String(WiFi.RSSI(i)) + ", \"encryption\": " + String((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? "false" : "true") + "}";
-		if (i < networksFound - 1)
-		{
-			connections += ",";
-		}
+	{ 
+		JsonObject connection = connections.createNestedObject();
+		connection["name"] = WiFi.SSID(i);
+		connection["signal"] = WiFi.RSSI(i);
+		connection["encryption"] = WiFi.encryptionType(i) != ENC_TYPE_NONE;
 	}
-	connections += "]}";
-	Serial.println(connections);
 
+	char buffer[400]; // create temp buffer
+	size_t len = serializeJson(response, buffer);  // serialize to buffer
+
+	Serial.println(buffer);
+	
 	// send message to client
-	webSocket.sendTXT(num, connections);
+	webSocket.sendTXT(num, buffer);
 }
 
 void waitConnection()
@@ -148,79 +152,95 @@ void _webSocketEvent(uint8_t numm, WStype_t type, uint8_t *payload, size_t lengt
 
 void _webSocketEventST(uint8_t numm, WStype_t type, uint8_t *payload, size_t length)
 {
-	switch (type)
-	{
-	case WStype_TEXT:
-	{
-		Serial.printf("[%u] get Text: %s\n", numm, payload);
-
-		String message = String((char *)(payload));
-		Serial.println(message);
-
-		//JSON part
-		DynamicJsonDocument doc(1024);
-		DeserializationError error = deserializeJson(doc, message);
-
-		String type = doc["type"];
-
-		if (type.equals("reset"))
-		{
-
-			eeprom.erase(true);
-			//Restarting ESP board
-			ESP.restart();
-		}
-
-		if (type.equals("auth"))
-		{
-			String auth = doc["auth"];
-
-			eeprom.saveAuth(auth);
-
-			webSocket.sendTXT(num, "{\"type\": \"auth\", \"status\": true}");
-
-			//Restarting ESP board
-			ESP.restart();
-		}
-
-		if (type.equals("update"))
-		{
-			String url = doc["url"];
-			String update_status = F("Checking for update...\n");
-			WiFiClient client;
-
-			t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
-
-			update_status += F("Returned: ");
-			switch (ret)
-			{
-			case HTTP_UPDATE_FAILED:
-				update_status += "Update failed:\nLastError: ";
-				update_status += ESPhttpUpdate.getLastError();
-				update_status += "\nError: ";
-				update_status += ESPhttpUpdate.getLastErrorString().c_str();
-				update_status += "\n";
-				break;
-
-			case HTTP_UPDATE_NO_UPDATES:
-				update_status += F("No Update Available.\n");
-				break;
-
-			case HTTP_UPDATE_OK:
-				update_status += F("Updated OK.\n");
-				break;
-			}
-			Serial.println(update_status);
-		}
-
-		if (type.equals("config"))
-		{
-			String msg = "{\"type\": \"config\", \"token\":\"" + _token +"\"}";
-			Serial.println(msg);
-			webSocket.sendTXT(num, msg);
-		}
+	if (type != WStype_TEXT) {
+		return;
 	}
-	break;
+
+	Serial.printf("[%u] get Text: %s\n", numm, payload);
+
+	String message = String((char *)(payload));
+	Serial.println(message);
+
+	//JSON part
+	DynamicJsonDocument doc(1024);
+	DeserializationError error = deserializeJson(doc, message);
+
+	DynamicJsonDocument responseDoc(200);
+	JsonObject response = responseDoc.to<JsonObject>();
+
+	String messageType = doc["type"];
+
+	if (messageType.equals("reset"))
+	{
+
+		eeprom.erase(true);
+		//Restarting ESP board
+		ESP.restart();
+	}
+
+	if (messageType.equals("auth"))
+	{
+		String auth = doc["auth"];
+
+		eeprom.saveAuth(auth);
+
+		response["type"] = "auth";
+		response["status"] = true;
+
+		char buffer[200]; // create temp buffer
+		size_t len = serializeJson(response, buffer);  // serialize to buffer
+
+		webSocket.sendTXT(num, buffer);
+
+		//Restarting ESP board
+		ESP.restart();
+	}
+
+	if (messageType.equals("update"))
+	{
+		String url = doc["url"];
+		String update_status = F("Checking for update...\n");
+		WiFiClient client;
+
+		t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
+
+		update_status += F("Returned: ");
+		switch (ret)
+		{
+		case HTTP_UPDATE_FAILED:
+			update_status += "Update failed:\nLastError: ";
+			update_status += ESPhttpUpdate.getLastError();
+			update_status += "\nError: ";
+			update_status += ESPhttpUpdate.getLastErrorString().c_str();
+			update_status += "\n";
+			break;
+
+		case HTTP_UPDATE_NO_UPDATES:
+			update_status += F("No Update Available.\n");
+			break;
+
+		case HTTP_UPDATE_OK:
+			update_status += F("Updated OK.\n");
+			break;
+		}
+		Serial.println(update_status);
+	}
+
+	if (messageType.equals("config"))
+	{
+		String token = eeprom.getAuth();
+		String md5 = ESP.getSketchMD5();
+
+		response["type"] = "config";
+		response["token"] = token;
+		response["md5"] = md5;
+
+		char buffer[200]; // create temp buffer
+		size_t len = serializeJson(response, buffer);  // serialize to buffer
+		
+		Serial.println(buffer);
+
+		webSocket.sendTXT(num, buffer);
 	}
 }
 
@@ -242,7 +262,6 @@ String credentials::EEPROM_Config()
 	pass = eeprom.getPassword();
 
 	String auth_token = eeprom.getAuth();
-	_token = auth_token;
 
 	return auth_token;
 }
