@@ -1,5 +1,3 @@
-#include "Arduino.h"
-
 #include "OTAEEPROM.h"
 
 // SSID = 0 to 31
@@ -8,25 +6,27 @@
 
 OTAEEPROM::OTAEEPROM()
 {
-	Serial.println("initializing eeprom");
+	Debugger::logln("initializing eeprom");
 	EEPROM.begin(512); //Initialasing EEPROM
 }
 
 void OTAEEPROM::saveSSID(String ssid)
 {
-	Serial.println("writing eeprom ssid:");
+	Debugger::logln("writing eeprom ssid:");
 	save(ssid, 0, 32);
+	EEPROM.commit();
 }
 
 void OTAEEPROM::savePassword(String password)
 {
-	Serial.println("writing eeprom pass:");
+	Debugger::logln("writing eeprom pass:");
 	save(password, 32, 64);
+	EEPROM.commit();
 }
 
 void OTAEEPROM::saveAuth(String auth)
 {
-	Serial.println("writing eeprom blynk:");
+	Debugger::logln("writing eeprom blynk:");
 	save(auth, 64, 100);
 	EEPROM.commit();
 }
@@ -35,15 +35,15 @@ String OTAEEPROM::getSSID()
 {
 	String ssid = read(0, 32);
 
-	Serial.print("SSID: ");
-	Serial.println(ssid);
+	Debugger::log("SSID: ");
+	Debugger::logln(ssid);
 
 	return ssid;
 }
 
 String OTAEEPROM::read(int init, int end){
 	char c;
-	int i;
+	uint8 i;
 
 	String aux = "";
 
@@ -60,11 +60,11 @@ void OTAEEPROM::save(String value, int init, int end) {
 		EEPROM.write(i, 0);
 	}
 
-	for (int i = 0; i < value.length(); ++i)
+	for (uint8 i = 0; i < value.length(); ++i)
 	{
 		EEPROM.write(init + i, value[i]);
-		Serial.print("Wrote: ");
-		Serial.println(value[i]);
+		Debugger::log("Wrote: ");
+		Debugger::log(value[i]);
 	}
 }
 
@@ -72,8 +72,8 @@ String OTAEEPROM::getPassword()
 {
 	String pass = read(32, 64);
 
-	Serial.print("Password: ");
-	Serial.println(pass);
+	Debugger::log("Password: ");
+	Debugger::logln(pass);
 	return pass;
 }
 
@@ -81,22 +81,17 @@ String OTAEEPROM::getAuth()
 {
 	String auth_token = read(64, 100);
 
-	Serial.print("Auth Token: ");
-	Serial.println(auth_token);
+	Debugger::log("Auth Token: ");
+	Debugger::logln(auth_token);
 	return auth_token;
 }
 
-void OTAEEPROM::erase(boolean commit)
+void OTAEEPROM::erase()
 {
-	// EEPROM.begin(512); //Initialasing EEPROM
-	Serial.println("Erasing...");
-	Serial.println("clearing eeprom");
+	Debugger::logln("clearing eeprom");
 	for (int i = 0; i < 100; ++i)
 	{
 		EEPROM.write(i, 0);
 	}
-	if (commit)
-	{
-		EEPROM.commit();
-	}
+	EEPROM.commit();
 }
