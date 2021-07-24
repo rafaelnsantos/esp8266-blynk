@@ -7,32 +7,34 @@
 
 class Debugger {  
   public:  
-    static void begin();
+    void begin();
 
-    static void logln(void);
-    static void logln(const String &s);
-    static void logln(const char c[]);
-    static void logln(char c);
-    static void logln(unsigned char b, int base);
-    static void logln(int num, int base);
-    static void logln(unsigned int num, int base);
-    static void logln(long num, int base);
-    static void logln(unsigned long num, int base);
-    static void logln(long long num, int base);
-    static void logln(unsigned long long num, int base);
-    static void logln(double num, int digits);
+    void logln(void);
+    void logln(const String &s);
+    void logln(const char c[]);
+    void logln(char c);
+    void logln(unsigned char b, int base);
+    void logln(int num, int base);
+    void logln(unsigned int num, int base);
+    void logln(long num, int base);
+    void logln(unsigned long num, int base);
+    void logln(long long num, int base);
+    void logln(unsigned long long num, int base);
+    void logln(double num, int digits);
 
-    static void log(const String &s);
-    static void log(const char str[]);
-    static void log(char c);
-    static void log(unsigned char b, int base);
-    static void log(int n, int base);
-    static void log(unsigned int n, int base);
-    static void log(long n, int base);
-    static void log(unsigned long n, int base);
-    static void log(long long n, int base);
-    static void log(unsigned long long n, int base);
-    static void log(double n, int digits);
+    void log(const String &s);
+    void log(const char str[]);
+    void log(char c);
+    void log(unsigned char b, int base);
+    void log(int n, int base);
+    void log(unsigned int n, int base);
+    void log(long n, int base);
+    void log(unsigned long n, int base);
+    void log(long long n, int base);
+    void log(unsigned long long n, int base);
+    void log(double n, int digits);
 };  
+
+extern Debugger Debug;
 
 #endif

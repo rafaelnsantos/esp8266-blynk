@@ -60,11 +60,11 @@ void API::handleWifi()
 
   WiFi.begin(ssid, password);
 
-  Debugger::log("connecting");
+  Debug.log("connecting");
   
   while (wifi_station_get_connect_status() == STATION_CONNECTING)
   {
-    Debugger::log(".");
+    Debug.log(".");
     delay(1000);
   }
 

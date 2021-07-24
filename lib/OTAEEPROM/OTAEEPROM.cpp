@@ -12,21 +12,21 @@ OTAEEPROM::OTAEEPROM()
 
 void OTAEEPROM::saveSSID(String ssid)
 {
-	Debugger::logln("writing eeprom ssid:");
+	Debug.logln("writing eeprom ssid:");
 	save(ssid, 0, 32);
 	EEPROM.commit();
 }
 
 void OTAEEPROM::savePassword(String password)
 {
-	Debugger::logln("writing eeprom pass:");
+	Debug.logln("writing eeprom pass:");
 	save(password, 32, 64);
 	EEPROM.commit();
 }
 
 void OTAEEPROM::saveAuth(String auth)
 {
-	Debugger::logln("writing eeprom blynk:");
+	Debug.logln("writing eeprom blynk:");
 	save(auth, 64, 100);
 	EEPROM.commit();
 }
@@ -35,8 +35,8 @@ String OTAEEPROM::getSSID()
 {
 	String ssid = read(0, 32);
 
-	Debugger::log("SSID: ");
-	Debugger::logln(ssid);
+	Debug.log("SSID: ");
+	Debug.logln(ssid);
 
 	return ssid;
 }
@@ -63,8 +63,8 @@ void OTAEEPROM::save(String value, int init, int end) {
 	for (uint8 i = 0; i < value.length(); ++i)
 	{
 		EEPROM.write(init + i, value[i]);
-		Debugger::log("Wrote: ");
-		Debugger::log(value[i]);
+		Debug.log("Wrote: ");
+		Debug.log(value[i]);
 	}
 }
 
@@ -72,8 +72,8 @@ String OTAEEPROM::getPassword()
 {
 	String pass = read(32, 64);
 
-	Debugger::log("Password: ");
-	Debugger::logln(pass);
+	Debug.log("Password: ");
+	Debug.logln(pass);
 	return pass;
 }
 
@@ -81,14 +81,14 @@ String OTAEEPROM::getAuth()
 {
 	String auth_token = read(64, 100);
 
-	Debugger::log("Auth Token: ");
-	Debugger::logln(auth_token);
+	Debug.log("Auth Token: ");
+	Debug.logln(auth_token);
 	return auth_token;
 }
 
 void OTAEEPROM::erase()
 {
-	Debugger::logln("clearing eeprom");
+	Debug.logln("clearing eeprom");
 	for (int i = 0; i < 100; ++i)
 	{
 		EEPROM.write(i, 0);

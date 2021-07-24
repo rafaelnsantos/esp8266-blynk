@@ -1,5 +1,7 @@
 #include "Debugger.h"
 
+Debugger Debug;
+
 void Debugger::begin()
 {
 #ifdef DEBUG
