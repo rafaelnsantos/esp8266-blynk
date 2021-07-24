@@ -33,6 +33,7 @@ void WiFiManager::run()
   {
     ArduinoOTA.handle();
     Blynk.run();
+    MDNS.update();
   }
 }
 
