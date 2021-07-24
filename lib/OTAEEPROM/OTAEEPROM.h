@@ -9,7 +9,6 @@
 class OTAEEPROM
 {
 public:
-  OTAEEPROM();
   void erase();
   void saveSSID(String ssid);
   void savePassword(String password);
@@ -24,9 +23,7 @@ private:
   void save(String string, int init, int end);
 };
 
-#ifndef eeprom
-#define eeprom OTAEEPROM()
-#endif
+extern OTAEEPROM eeprom;
 
 #endif
 

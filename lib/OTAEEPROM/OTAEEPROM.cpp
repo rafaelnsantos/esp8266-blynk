@@ -4,11 +4,7 @@
 // PASS = 32 to 63
 // BLYNK = 64 to 99
 
-OTAEEPROM::OTAEEPROM()
-{
-	Debugger::logln("initializing eeprom");
-	EEPROM.begin(512); //Initialasing EEPROM
-}
+OTAEEPROM eeprom;
 
 void OTAEEPROM::saveSSID(String ssid)
 {
