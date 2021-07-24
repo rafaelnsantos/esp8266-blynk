@@ -3,6 +3,7 @@
 // SSID = 0 to 31
 // PASS = 32 to 63
 // BLYNK = 64 to 99
+// NAME = 100 to 131
 
 OTAEEPROM eeprom;
 
@@ -10,21 +11,34 @@ void OTAEEPROM::saveSSID(String ssid)
 {
 	Debug.logln("writing eeprom ssid:");
 	save(ssid, 0, 32);
-	EEPROM.commit();
 }
 
 void OTAEEPROM::savePassword(String password)
 {
 	Debug.logln("writing eeprom pass:");
 	save(password, 32, 64);
-	EEPROM.commit();
 }
 
 void OTAEEPROM::saveAuth(String auth)
 {
 	Debug.logln("writing eeprom blynk:");
 	save(auth, 64, 100);
-	EEPROM.commit();
+}
+
+void OTAEEPROM::saveName(String name)
+{
+	Debug.logln("writing eeprom name:");
+	save(name, 100, 132);
+}
+
+String OTAEEPROM::getName()
+{
+	String name = read(100, 132);
+
+	Debug.log("name: ");
+	Debug.logln(name);
+
+	return name;
 }
 
 String OTAEEPROM::getSSID()
@@ -62,6 +76,7 @@ void OTAEEPROM::save(String value, int init, int end) {
 		Debug.log("Wrote: ");
 		Debug.log(value[i]);
 	}
+	EEPROM.commit();
 }
 
 String OTAEEPROM::getPassword()
@@ -85,7 +100,7 @@ String OTAEEPROM::getAuth()
 void OTAEEPROM::erase()
 {
 	Debug.logln("clearing eeprom");
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 132; ++i)
 	{
 		EEPROM.write(i, 0);
 	}

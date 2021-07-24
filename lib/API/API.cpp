@@ -9,6 +9,7 @@ void API::begin(boolean connected)
     server.on("/api/config", HTTP_GET, std::bind(&API::handleConfig, this));
     server.on("/api/reset", HTTP_POST, std::bind(&API::handleReset, this));
     server.on("/api/update", HTTP_POST, std::bind(&API::handleUpdate, this));
+    server.on("/api/name", HTTP_POST, std::bind(&API::handleName, this));
   }
   else
   {
@@ -87,6 +88,7 @@ void API::handleConfig()
 
   response["md5"] = ESP.getSketchMD5();
   response["token"] = eeprom.getAuth();
+  response["name"] = eeprom.getName();
 
   char buffer[200];
   serializeJson(response, buffer);
@@ -144,4 +146,17 @@ void API::handleUpdate()
     default:
       server.send(500, "http/plain", String(ret));
   }
+}
+
+void API::handleName()
+{
+  DynamicJsonDocument body(200);
+
+  deserializeJson(body, server.arg("plain"));
+
+  String name = body["name"];
+
+  eeprom.saveName(name);
+
+  server.send(200);
 }

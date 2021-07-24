@@ -21,6 +21,7 @@ private:
   void handleAuth();
   void handleReset();
   void handleUpdate();
+  void handleName();
 
 public:
   void begin(boolean connected);
