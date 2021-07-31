@@ -57,7 +57,8 @@ String OTAEEPROM::read(int init, int end){
 
 	String aux = "";
 
-	for (i = init, c = char(EEPROM.read(i)); i < end && c != NULL; ++i, c = char(EEPROM.read(i)) ) {
+	for (i = init, c = char(EEPROM.read(i)); i < end && c != '\0'; ++i, c = char(EEPROM.read(i)))
+	{
 		aux += c;
 	}
 
