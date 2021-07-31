@@ -23,8 +23,11 @@ private:
   void setupOTAUpdate();
   void setupMDNS(String hostname);
   void setupBlynk();
+  void setupSwitch();
+  void runSwitch();
 
   char blynkToken[33];
+  int previousSwitchFlag = 0;
 
 public:
   void begin();

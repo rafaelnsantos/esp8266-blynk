@@ -1,6 +1,19 @@
 #include "WiFiManager.h"
 #include <BlynkSimpleEsp8266.h>
 
+#define PIN_BUTTON 3
+#define PIN_RELAY 0
+
+BLYNK_WRITE(V0)
+{
+  digitalWrite(PIN_RELAY, param.asInt());
+}
+
+BLYNK_CONNECTED()
+{
+  Blynk.syncVirtual(V0);
+}
+
 void WiFiManager::begin()
 {
   EEPROM.begin(512);
@@ -24,6 +37,7 @@ void WiFiManager::begin()
     setupAP(hostString, "");
   }
 
+  setupSwitch();
 
   api.begin(connected);
 }
@@ -31,6 +45,7 @@ void WiFiManager::begin()
 void WiFiManager::run()
 {
   api.run();
+  runSwitch();
 
   if (connected)
   {
@@ -115,4 +130,35 @@ void WiFiManager::setupMDNS(String hostname)
 bool WiFiManager::isConnected()
 {
   return connected;
+}
+
+void WiFiManager::setupSwitch()
+{
+  pinMode(PIN_BUTTON, FUNCTION_3);
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+  pinMode(PIN_RELAY, OUTPUT);
+}
+
+void WiFiManager::runSwitch()
+{
+  if (digitalRead(PIN_BUTTON) == LOW)
+  {
+    if (previousSwitchFlag == 0)
+    {
+      digitalWrite(PIN_RELAY, LOW);
+      DEBUG_PRINT("Relay1- ON");
+      Blynk.virtualWrite(V0, 0);
+      previousSwitchFlag = 1;
+    }
+  }
+  else
+  {
+    if (previousSwitchFlag == 1)
+    {
+      digitalWrite(PIN_RELAY, HIGH);
+      DEBUG_PRINT("Relay1 OFF");
+      Blynk.virtualWrite(V0, 1);
+      previousSwitchFlag = 0;
+    }
+  }
 }
