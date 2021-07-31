@@ -108,6 +108,8 @@ void API::handleAuth()
 
   server.send(200);
 
+  delay(200);
+
   ESP.restart();
 }
 
@@ -116,6 +118,8 @@ void API::handleReset()
   eeprom.erase();
 
   server.send(200);
+
+  delay(200);
 
   ESP.restart();
 }
@@ -138,6 +142,8 @@ void API::handleUpdate()
   switch(ret) {
     case HTTP_UPDATE_OK:
       server.send(200);
+      delay(200);
+
       ESP.restart();
       break;
     case HTTP_UPDATE_FAILED:
