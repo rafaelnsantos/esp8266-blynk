@@ -11,7 +11,7 @@ void WiFiManager::begin()
   char hostString[16] = {0};
   sprintf(hostString, "ESP_%06X", ESP.getChipId());
 
-  Debug.logln(hostString);
+  DEBUG_PRINT(hostString);
 
   if (connected)
   {
@@ -56,7 +56,7 @@ bool WiFiManager::testWifi()
   if (ssid == "")
     return false;
   int c = 0;
-  Debug.logln("Waiting for Wifi to connect");
+  DEBUG_PRINT("Waiting for Wifi to connect");
 
   WiFi.begin(ssid, password);
   while (c < 20)
@@ -66,11 +66,10 @@ bool WiFiManager::testWifi()
       return true;
     }
     delay(500);
-    Debug.log("*");
+    DEBUG_PRINT("*");
     c++;
   }
-  Debug.logln("");
-  Debug.logln("Connect timed out");
+  DEBUG_PRINT("Connect timed out");
   return false;
 }
 
@@ -83,13 +82,13 @@ void WiFiManager::reset()
 void WiFiManager::setupOTAUpdate()
 {
   ArduinoOTA.onStart([]()
-                     { Debug.logln("Inicio..."); });
+                     { DEBUG_PRINT("Inicio..."); });
   ArduinoOTA.onEnd([]()
-                   { Debug.logln("nFim!"); });
+                   { DEBUG_PRINT("nFim!"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-                        { Debug.logln(progress / (total / 100)); });
+                        { DEBUG_PRINT(progress / (total / 100)); });
   ArduinoOTA.onError([](ota_error_t error)
-                     { Debug.logln(error); });
+                     { DEBUG_PRINT(error); });
 
   ArduinoOTA.begin();
 }
@@ -109,7 +108,7 @@ void WiFiManager::setupMDNS(String hostname)
   }
   else
   {
-    Debug.logln("Error setting up MDNS responder!");
+    DEBUG_PRINT("Error setting up MDNS responder!");
   }
 }
 
