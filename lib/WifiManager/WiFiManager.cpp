@@ -138,28 +138,19 @@ void WiFiManager::setupSwitch()
   pinMode(PIN_BUTTON, FUNCTION_3);
   pinMode(PIN_BUTTON, INPUT_PULLUP);
   pinMode(PIN_RELAY, OUTPUT);
+  previousSwitchFlag = digitalRead(PIN_BUTTON);
 }
 
 void WiFiManager::runSwitch()
 {
-  if (digitalRead(PIN_BUTTON) == LOW)
-  {
-    if (previousSwitchFlag == 0)
-    {
-      digitalWrite(PIN_RELAY, LOW);
-      DEBUG_PRINT("Relay1- ON");
-      Blynk.virtualWrite(V0, 0);
-      previousSwitchFlag = 1;
-    }
-  }
-  else
-  {
-    if (previousSwitchFlag == 1)
-    {
-      digitalWrite(PIN_RELAY, HIGH);
-      DEBUG_PRINT("Relay1 OFF");
-      Blynk.virtualWrite(V0, 1);
-      previousSwitchFlag = 0;
-    }
+  int currentSwitch = digitalRead(PIN_BUTTON);
+
+  if (currentSwitch != previousSwitchFlag) {
+    int state = digitalRead(PIN_RELAY) == LOW ? HIGH : LOW;
+    digitalWrite(PIN_RELAY, state);
+    DEBUG_PRINT("SWITCH");
+    DEBUG_PRINT(state);
+    Blynk.virtualWrite(V0, state);
+    previousSwitchFlag = currentSwitch;
   }
 }
