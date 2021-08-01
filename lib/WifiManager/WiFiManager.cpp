@@ -46,6 +46,7 @@ void WiFiManager::run()
 {
   api.run();
   runSwitch();
+  Debug.run();
 
   if (connected)
   {
