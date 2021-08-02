@@ -15,6 +15,7 @@
 class API
 {
 private:
+  ESP8266WebServer server;
   void handleScan();
   void handleWifi();
   void handleConfig();
@@ -25,8 +26,10 @@ private:
 
 public:
   void begin(boolean connected);
-
+  API(): server(80) {}
   void run();
 };
+
+extern API api;
 
 #endif

@@ -1,6 +1,6 @@
 #include "API.h"
 
-ESP8266WebServer server(80);
+API api;
 
 void API::begin(boolean connected)
 {

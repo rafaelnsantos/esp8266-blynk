@@ -16,7 +16,6 @@
 class WiFiManager
 {
 private:
-  API api;
   bool connected;
   void setupAP(String ssid, String password);
   bool testWifi();
@@ -32,8 +31,9 @@ private:
 public:
   void begin();
   void run();
-  void reset();
   bool isConnected();
 };
+
+extern WiFiManager wifi;
 
 #endif

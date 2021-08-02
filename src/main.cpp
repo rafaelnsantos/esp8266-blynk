@@ -1,15 +1,18 @@
 #include "Arduino.h"
 
 #include "WiFiManager.h"
-
-WiFiManager wifiManager;
+#include "BlynkManager.h"
 
 void setup()
 {
-  wifiManager.begin();
+  wifi.begin();
+
+  blynk.begin(wifi.isConnected());
 }
 
 void loop()
 {
-  wifiManager.run();
+  blynk.run(wifi.isConnected());
+
+  wifi.run();
 }

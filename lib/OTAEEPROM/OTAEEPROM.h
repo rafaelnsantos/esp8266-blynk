@@ -9,6 +9,7 @@
 class OTAEEPROM
 {
 public:
+  void begin();
   void erase();
   void saveSSID(String ssid);
   void savePassword(String password);

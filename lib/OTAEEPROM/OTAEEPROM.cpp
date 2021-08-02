@@ -7,6 +7,11 @@
 
 OTAEEPROM eeprom;
 
+void OTAEEPROM::begin()
+{
+	EEPROM.begin(512);
+}
+
 void OTAEEPROM::saveSSID(String ssid)
 {
 	DEBUG_PRINT("writing eeprom ssid:");
