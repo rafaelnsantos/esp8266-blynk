@@ -3,23 +3,19 @@
 
 #include "Arduino.h"
 
-#include "OTAEEPROM.h"
+#include "Data.h"
 #include "Debugger.h"
+#include "Relay.h"
 
 class BlynkManager
 {
 private:
-  void setupBlynk();
-  void setupSwitch();
-  void runSwitch();
-
   char blynkToken[33];
-  int previousSwitchFlag = 0;
 
 public:
-  void begin(bool hasInternet);
-  void run(bool hasInternet);
-  bool isConnected();
+  void begin();
+  void run();
+  void setState(int state);
 };
 
 extern BlynkManager blynk;

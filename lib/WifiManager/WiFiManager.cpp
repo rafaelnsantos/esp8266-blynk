@@ -2,12 +2,15 @@
 
 WiFiManager wifi;
 
-void WiFiManager::begin()
+bool WiFiManager::begin()
 {
-  eeprom.begin();
+  data.begin();
   Debug.begin();
 
-  connected = testWifi();
+  String ssid = data.getSSID();
+  String password = data.getPassword();
+
+  connected = testWifi(ssid, password);
 
   char hostString[16] = {0};
   sprintf(hostString, "ESP_%06X", ESP.getChipId());
@@ -25,6 +28,8 @@ void WiFiManager::begin()
   }
 
   api.begin(connected);
+
+  return connected;
 }
 
 void WiFiManager::run()
@@ -48,12 +53,11 @@ void WiFiManager::setupAP(String ssid, String password)
   WiFi.softAP(ssid, password);
 }
 
-bool WiFiManager::testWifi()
+bool WiFiManager::testWifi(String ssid, String password)
 {
-  String ssid = eeprom.getSSID();
-  String password = eeprom.getPassword();
   if (ssid == "")
     return false;
+
   int c = 0;
   DEBUG_PRINT("Waiting for Wifi to connect");
 
@@ -96,9 +100,4 @@ void WiFiManager::setupMDNS(String hostname)
   {
     DEBUG_PRINT("Error setting up MDNS responder!");
   }
-}
-
-bool WiFiManager::isConnected()
-{
-  return connected;
 }

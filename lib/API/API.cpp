@@ -75,22 +75,25 @@ void API::handleWifi()
   }
   else
   {
-    eeprom.saveSSID(ssid);
-    eeprom.savePassword(password);
+    data.saveSSID(ssid);
+    data.savePassword(password);
     server.send(200);
   }
 }
 
 void API::handleConfig()
 {
-  DynamicJsonDocument doc(200);
+  DynamicJsonDocument doc(1024);
   JsonObject response = doc.to<JsonObject>();
 
   response["md5"] = ESP.getSketchMD5();
-  response["token"] = eeprom.getAuth();
-  response["name"] = eeprom.getName();
+  response["token"] = data.getAuth();
+  response["id"] = data.getSwitchID();
+  response["secret"] = data.getAppSecret();
+  response["key"] = data.getAppKey();
+  response["name"] = data.getName();
 
-  char buffer[200];
+  char buffer[1024];
   serializeJson(response, buffer);
 
   server.send(200, "application/json", buffer);
@@ -98,13 +101,21 @@ void API::handleConfig()
 
 void API::handleAuth()
 {
-  DynamicJsonDocument body(200);
+  DynamicJsonDocument body(500);
 
   deserializeJson(body, server.arg("plain"));
 
   String token = body["token"];
+  String key = body["key"];
+  String secret = body["secret"];
+  String id = body["id"];
 
-  eeprom.saveAuth(token);
+  // should check here
+
+  data.saveAuth(token);
+  data.saveAppKey(key);
+  data.saveAppSecret(secret);
+  data.saveSwitchID(id);
 
   server.send(200);
 
@@ -115,7 +126,7 @@ void API::handleAuth()
 
 void API::handleReset()
 {
-  eeprom.erase();
+  data.erase();
 
   server.send(200);
 
@@ -162,7 +173,7 @@ void API::handleName()
 
   String name = body["name"];
 
-  eeprom.saveName(name);
+  data.saveName(name);
 
   server.send(200);
 }

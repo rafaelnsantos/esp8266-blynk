@@ -1,8 +1,6 @@
 #ifndef WiFiManager_h
 #define WiFiManager_h
 
-#define ATOMIC_FS_UPDATE
-
 #include "Arduino.h"
 
 #include "ESP8266WiFi.h"
@@ -10,7 +8,7 @@
 #include "ArduinoOTA.h"
 
 #include "API.h"
-#include "OTAEEPROM.h"
+#include "Data.h"
 #include "Debugger.h"
 
 class WiFiManager
@@ -18,20 +16,16 @@ class WiFiManager
 private:
   bool connected;
   void setupAP(String ssid, String password);
-  bool testWifi();
+  bool testWifi(String ssid, String password);
   void setupOTAUpdate();
   void setupMDNS(String hostname);
-  void setupBlynk();
-  void setupSwitch();
-  void runSwitch();
 
   char blynkToken[33];
   int previousSwitchFlag = 0;
 
 public:
-  void begin();
+  bool begin();
   void run();
-  bool isConnected();
 };
 
 extern WiFiManager wifi;

@@ -2,17 +2,34 @@
 
 #include "WiFiManager.h"
 #include "BlynkManager.h"
+#include "SinricManager.h"
+#include "Relay.h"
+#include "Switch.h"
+
+bool connected;
 
 void setup()
 {
-  wifi.begin();
-
-  blynk.begin(wifi.isConnected());
+  connected = wifi.begin();
+  relay.begin();
+  button.begin();
+  
+  if (connected)
+  {
+    sinric.begin();
+    blynk.begin();
+  }
 }
 
 void loop()
 {
-  blynk.run(wifi.isConnected());
-
   wifi.run();
+
+  button.run();
+
+  if (connected)
+  {
+    blynk.run();
+    sinric.run();
+  }
 }
