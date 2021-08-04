@@ -27,5 +27,5 @@ void BlynkManager::run()
 
 void BlynkManager::setState(int state)
 {
-  Blynk.virtualWrite(V0, state);
+  if (Blynk.connected()) Blynk.virtualWrite(V0, state);
 }

@@ -33,5 +33,5 @@ void SinricManager::run()
 
 void SinricManager::sendPowerState(bool state, String reason)
 {
-  mySwitch->sendPowerStateEvent(state, reason);
+  if (SinricPro.isConnected()) mySwitch->sendPowerStateEvent(state, reason);
 }
