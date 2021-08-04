@@ -6,15 +6,14 @@
 #include "Relay.h"
 #include "Switch.h"
 
-bool connected;
-
 void setup()
 {
-  connected = wifi.begin();
+  wifi.begin();
+
   relay.begin();
   button.begin();
   
-  if (connected)
+  if (wifi.isConnected())
   {
     sinric.begin();
     blynk.begin();
@@ -27,7 +26,7 @@ void loop()
 
   button.run();
 
-  if (connected)
+  if (wifi.isConnected())
   {
     blynk.run();
     sinric.run();

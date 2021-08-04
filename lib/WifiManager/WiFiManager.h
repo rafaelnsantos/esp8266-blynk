@@ -26,6 +26,7 @@ private:
 public:
   bool begin();
   void run();
+  bool isConnected();
 };
 
 extern WiFiManager wifi;

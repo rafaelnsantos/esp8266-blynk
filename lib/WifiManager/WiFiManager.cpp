@@ -42,6 +42,12 @@ void WiFiManager::run()
     ArduinoOTA.handle();
     MDNS.update();
   }
+
+  static unsigned long last = millis();
+  if (millis() - last > 5000) {
+    last = millis();
+    connected = WiFi.status() == WL_CONNECTED;
+  }
 }
 
 void WiFiManager::setupAP(String ssid, String password)
@@ -100,4 +106,9 @@ void WiFiManager::setupMDNS(String hostname)
   {
     DEBUG_PRINT("Error setting up MDNS responder!");
   }
+}
+
+bool WiFiManager::isConnected()
+{
+  return connected;
 }
