@@ -22,6 +22,7 @@ private:
   void handleReset();
   void handleUpdate();
   void handleName();
+  void handleStats();
 
 public:
   void begin(boolean connected);

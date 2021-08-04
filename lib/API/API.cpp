@@ -18,6 +18,7 @@ void API::begin(boolean connected)
   }
   
   server.on("/api/auth", HTTP_POST, std::bind(&API::handleAuth, this));
+  server.on("/api/stats", HTTP_GET, std::bind(&API::handleStats, this));
   
   server.begin();
 };
@@ -53,7 +54,7 @@ void API::handleScan()
 void API::handleWifi()
 {
   DynamicJsonDocument body(200);
-
+  
   deserializeJson(body, server.arg("plain"));
 
   String ssid = body["ssid"];
@@ -87,10 +88,10 @@ void API::handleConfig()
   JsonObject response = doc.to<JsonObject>();
 
   response["md5"] = ESP.getSketchMD5();
-  response["token"] = data.getAuth();
-  response["id"] = data.getSwitchID();
-  response["secret"] = data.getAppSecret();
-  response["key"] = data.getAppKey();
+  response["token"] = data.getAuth().substring(0, 5);
+  response["id"] = data.getSwitchID().substring(0, 5);
+  response["secret"] = data.getAppSecret().substring(0, 5);
+  response["key"] = data.getAppKey().substring(0, 5);
   response["name"] = data.getName();
 
   char buffer[1024];
@@ -176,4 +177,20 @@ void API::handleName()
   data.saveName(name);
 
   server.send(200);
+}
+
+void API::handleStats()
+{
+  DynamicJsonDocument doc(300);
+  JsonObject response = doc.to<JsonObject>();
+
+  response["Free Heap"] = ESP.getFreeHeap();
+  response["Free Sketch Space"] = ESP.getFreeSketchSpace();
+  response["Heap Fragmentation"] = ESP.getHeapFragmentation();
+  response["SDK Version"] = ESP.getSdkVersion();
+
+  char buffer[300];
+  serializeJson(response, buffer);
+
+  server.send(200, "application/json", buffer);
 }
