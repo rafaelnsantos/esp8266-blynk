@@ -22,12 +22,6 @@ void Data::savePassword(String password)
 	save(password, "/password.txt");
 }
 
-void Data::saveAuth(String auth)
-{
-	DEBUG_PRINT("writing blynk");
-	save(auth, "/token.txt");
-}
-
 void Data::saveName(String name)
 {
 	DEBUG_PRINT("writing name");
@@ -84,21 +78,17 @@ String Data::getPassword()
 	return read("/password.txt");
 }
 
-String Data::getAuth()
-{
-	DEBUG_PRINT("Auth Token");
-	return read("/token.txt");
-}
-
 void Data::erase()
 {
 	DEBUG_PRINT("clearing data");
+	saveSSID("");
+	savePassword("");
+
 	saveAppKey("");
 	saveAppSecret("");
-	saveAuth("");
-	saveName("");
-	savePassword("");
 	saveSwitchID("");
+	
+	saveName("");
 }
 
 String Data::getAppKey()
@@ -135,4 +125,17 @@ void Data::saveSwitchID(String id)
 {
 	DEBUG_PRINT("writing id");
 	save(id, "/id.txt");
+}
+
+
+void Data::saveRelay(bool state)
+{
+	DEBUG_PRINT("writing relay");
+	save(state ? "true" : "false", "/relay.txt");
+}
+
+bool Data::getRelay()
+{
+	DEBUG_PRINT("relay");
+	return read("/relay.txt").equals("true");
 }

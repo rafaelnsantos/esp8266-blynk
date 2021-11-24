@@ -1,43 +1,60 @@
 #include "Relay.h"
-#include "BlynkManager.h"
 
-Relay relay(0);
+Relay::Relay(int pin)
+{
+  PIN = pin;
+}
+
+Relay::Relay(int pin, bool isInverted)
+{
+  PIN = pin;
+  INVERTED = isInverted;
+}
 
 void Relay::begin()
 {
   pinMode(PIN, OUTPUT);
+
+  recoverState();
 }
 
-void Relay::setState(int state, REASON reason)
+void Relay::setState(bool state)
 {
-  int oldState = digitalRead(PIN);
-  
-  if (state == oldState) return;
-  
+  data.saveRelay(state);
+
+  if (INVERTED) state = !state;
+
+  int newState = state ? HIGH : LOW;
+
   DEBUG_PRINT(state);
-  digitalWrite(PIN, state);
 
-  switch (reason)
-  {
-  case BLYNK:
-    DEBUG_PRINT("BLYNK");
-    sinric.sendPowerState(state == 0 ? true : false, "blynk");
-    break;
-
-  case SINRIC:
-    DEBUG_PRINT("SINRIC");
-    blynk.setState(state);
-    break;
-  
-  case SWITCH:
-    DEBUG_PRINT("SWITCH");
-    sinric.sendPowerState(state == 0 ? true : false, "manual switch");
-    blynk.setState(state);
-    break;
-  }
+  digitalWrite(PIN, newState);
 }
 
-void Relay::toggle()
+bool Relay::toggle()
 {
-  setState(digitalRead(PIN) == LOW ? HIGH : LOW, SWITCH);
+  int state = getState();
+  
+  setState(!state);
+  
+  return !state;
+}
+
+bool Relay::getState()
+{
+  int state = digitalRead(PIN);
+
+  if (INVERTED)
+  {
+    return state == LOW ? true : false;
+  }
+
+  return state == HIGH ? true : false;
+}
+
+void Relay::recoverState()
+{
+  bool state = data.getRelay();
+
+  setState(state);
 }

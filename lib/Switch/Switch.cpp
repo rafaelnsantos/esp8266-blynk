@@ -1,7 +1,5 @@
 #include "Switch.h"
 
-Switch button(3);
-
 void Switch::begin()
 {
   pinMode(PIN, FUNCTION_3);
@@ -16,7 +14,16 @@ void Switch::run()
 
   if (currentState != previousState)
   {
-    relay.toggle();
+    if (switchCallback)
+    {
+      switchCallback(currentState);
+    }
+
     previousState = currentState;
   }
+}
+
+void Switch::onSwitch(SwitchCallback cb)
+{
+  switchCallback = cb;
 }

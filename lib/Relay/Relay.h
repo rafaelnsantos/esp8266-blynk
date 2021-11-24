@@ -2,30 +2,23 @@
 #define RELAY_H
 
 #include "Arduino.h"
-
-#include "SinricManager.h"
-
-enum REASON {
-  SWITCH,
-  BLYNK,
-  SINRIC
-};
+#include "Data.h"
+#include "Debugger.h"
 
 class Relay
 {
 private:
   int PIN;
+  bool INVERTED = false;
 
 public:
+  Relay(int pin);
+  Relay(int pin, bool isInverted);
   void begin();
-  void setState(int state, REASON reason);
-  void toggle();
-
-  Relay(int pin){
-    PIN = pin;
-  }
+  void setState(bool state);
+  bool toggle();
+  bool getState();
+  void recoverState();
 };
-
-extern Relay relay;
 
 #endif

@@ -50,7 +50,9 @@
     "new": "cpp",
     "stdexcept": "cpp",
     "cinttypes": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "ctime": "cpp",
+    "regex": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

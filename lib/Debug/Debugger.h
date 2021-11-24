@@ -1,7 +1,7 @@
 #ifndef Debugger_h
 #define Debugger_h
 
-// #define DEBUG
+#define DEBUG
 // #define DEBUG_WS
 
 #ifdef DEBUG_WS

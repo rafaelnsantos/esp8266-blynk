@@ -7,29 +7,22 @@
 #include <ArduinoJson.h>
 #include "Debugger.h"
 #include "Data.h"
-#include <ESP8266httpUpdate.h>
-
-#define ATOMIC_FS_UPDATE
+#include "PracticalCrypto.h"
+#include "WiFiUtil.h"
 
 class API
 {
 private:
   ESP8266WebServer server;
   void handleScan();
-  void handleWifi();
   void handleConfig();
-  void handleAuth();
   void handleReset();
-  void handleUpdate();
-  void handleName();
   void handleStats();
 
 public:
-  void begin(boolean connected);
+  void begin(bool connected);
   API(): server(80) {}
   void run();
 };
-
-extern API api;
 
 #endif

@@ -13,20 +13,20 @@ public:
   void erase();
   void saveSSID(String ssid);
   void savePassword(String password);
-  void saveAuth(String auth);
   void saveName(String name);
   void saveAppKey(String appKey);
   void saveAppSecret(String appSecret);
   void saveSwitchID(String awitchID);
+  void saveRelay(bool state);
 
   String getSSID();
   String getPassword();
-  String getAuth();
   String getName();
   String getAppKey();
   String getAppSecret();
   String getSwitchID();
-
+  bool getRelay();
+  
 private:
   String read(String file);
   void save(String string, String file);

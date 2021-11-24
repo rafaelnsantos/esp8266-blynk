@@ -1,196 +1,120 @@
 #include "API.h"
 
-API api;
-
-void API::begin(boolean connected)
+void API::begin(bool connected)
 {
   if (connected)
   {
-    server.on("/api/config", HTTP_GET, std::bind(&API::handleConfig, this));
-    server.on("/api/reset", HTTP_POST, std::bind(&API::handleReset, this));
-    server.on("/api/update", HTTP_POST, std::bind(&API::handleUpdate, this));
-    server.on("/api/name", HTTP_POST, std::bind(&API::handleName, this));
+    server.on("/api/reset", HTTP_GET, std::bind(&API::handleReset, this));
+
+    const char * headerkeys[] = {"Token"} ;
+    size_t headerkeyssize = sizeof(headerkeys)/sizeof(char*);
+    server.collectHeaders(headerkeys, headerkeyssize );
+
+    String key = data.getSwitchID() + data.getAppSecret();
+    Crypto.setKey(key.substring(0, 64));
   }
   else
   {
     server.on("/api/scan", HTTP_GET, std::bind(&API::handleScan, this));
-    server.on("/api/wifi", HTTP_POST, std::bind(&API::handleWifi, this));
+    server.on("/api/config", HTTP_POST, std::bind(&API::handleConfig, this));
   }
-  
-  server.on("/api/auth", HTTP_POST, std::bind(&API::handleAuth, this));
-  server.on("/api/stats", HTTP_GET, std::bind(&API::handleStats, this));
-  
-  server.begin();
-};
 
-void API::run()
-{
-  server.handleClient();
+  server.on("/api/stats", HTTP_GET, std::bind(&API::handleStats, this));
+
+  server.begin();
 };
 
 void API::handleScan()
 {
-  DynamicJsonDocument doc(400);
-  JsonObject response = doc.to<JsonObject>();
-
-  int8_t networksFound = WiFi.scanNetworks();
-
-  JsonArray connections = response.createNestedArray("connections");
-
-  for (int i = 0; i < networksFound; ++i)
-  {
-    JsonObject connection = connections.createNestedObject();
-    connection["name"] = WiFi.SSID(i);
-    connection["signal"] = WiFi.RSSI(i);
-    connection["encryption"] = WiFi.encryptionType(i);
-  }
-
-  char buffer[400];
-  serializeJson(response, buffer);
-
-  server.send(200, "application/json", buffer);
+  String response;
+  serializeJson(WiFiUtil::scanNetwork(), response);
+  server.send(200, "application/json", response);
 }
 
-void API::handleWifi()
+void API::handleConfig()
 {
-  DynamicJsonDocument body(200);
-  
+  DynamicJsonDocument body(400);
+
   deserializeJson(body, server.arg("plain"));
 
   String ssid = body["ssid"];
   String password = body["password"];
 
-  WiFi.begin(ssid, password);
+  DEBUG_PRINT(ssid);
+  DEBUG_PRINT(password);
 
-  DEBUG_PRINT("connecting");
-  
-  while (wifi_station_get_connect_status() == STATION_CONNECTING)
-  {
-    DEBUG_PRINT(".");
-    delay(1000);
-  }
 
-  if (wifi_station_get_connect_status() != STATION_GOT_IP)
+  if (WiFiUtil::testWifi(ssid, password)) 
   {
-    server.send(401, "text/plain", String(wifi_station_get_connect_status()));
+    String key = body["key"];
+    String secret = body["secret"];
+    String id = body["id"];
+
+    DEBUG_PRINT(key);
+    DEBUG_PRINT(secret);
+    DEBUG_PRINT(id);
+
+
+    data.saveSSID(ssid);
+    data.savePassword(password);
+    data.saveAppKey(key);
+    data.saveAppSecret(secret);
+    data.saveSwitchID(id);
+
+    server.send(200);
+
+    ESP.restart();
   }
   else
   {
-    data.saveSSID(ssid);
-    data.savePassword(password);
-    server.send(200);
+    server.send(401);
+    WiFi.mode(WIFI_AP);
   }
-}
-
-void API::handleConfig()
-{
-  DynamicJsonDocument doc(1024);
-  JsonObject response = doc.to<JsonObject>();
-
-  response["md5"] = ESP.getSketchMD5();
-  response["token"] = data.getAuth().substring(0, 5);
-  response["id"] = data.getSwitchID().substring(0, 5);
-  response["secret"] = data.getAppSecret().substring(0, 5);
-  response["key"] = data.getAppKey().substring(0, 5);
-  response["name"] = data.getName();
-
-  char buffer[1024];
-  serializeJson(response, buffer);
-
-  server.send(200, "application/json", buffer);
-}
-
-void API::handleAuth()
-{
-  DynamicJsonDocument body(500);
-
-  deserializeJson(body, server.arg("plain"));
-
-  String token = body["token"];
-  String key = body["key"];
-  String secret = body["secret"];
-  String id = body["id"];
-
-  // should check here
-
-  data.saveAuth(token);
-  data.saveAppKey(key);
-  data.saveAppSecret(secret);
-  data.saveSwitchID(id);
-
-  server.send(200);
-
-  delay(200);
-
-  ESP.restart();
 }
 
 void API::handleReset()
 {
-  data.erase();
+  String token = server.header("token");
 
-  server.send(200);
+  DEBUG_PRINT(token);
 
-  delay(200);
+  ESP.wdtDisable();
 
-  ESP.restart();
-}
+  String message = Crypto.decrypt(token);
 
-void API::handleUpdate()
-{
-  DynamicJsonDocument body(200);
+  ESP.wdtEnable(1000);
 
-  deserializeJson(body, server.arg("plain"));
+  DEBUG_PRINT(message);
 
-  String url = body["url"];
+  if (message.equals("reset"))
+  {
+    // data.erase();
 
-  WiFiClient client;
+    server.send(200);
 
-  ESPhttpUpdate.rebootOnUpdate(false);
-  ESPhttpUpdate.closeConnectionsOnUpdate(false);
-  
-  t_httpUpdate_return ret = ESPhttpUpdate.update(client, url);
-
-  switch(ret) {
-    case HTTP_UPDATE_OK:
-      server.send(200);
-      delay(200);
-
-      ESP.restart();
-      break;
-    case HTTP_UPDATE_FAILED:
-      server.send(500, "http/plain", ESPhttpUpdate.getLastErrorString());
-      break;
-    default:
-      server.send(500, "http/plain", String(ret));
+    ESP.restart();
   }
-}
-
-void API::handleName()
-{
-  DynamicJsonDocument body(200);
-
-  deserializeJson(body, server.arg("plain"));
-
-  String name = body["name"];
-
-  data.saveName(name);
-
-  server.send(200);
+  else
+  {
+    server.send(401);
+  }
 }
 
 void API::handleStats()
 {
-  DynamicJsonDocument doc(300);
-  JsonObject response = doc.to<JsonObject>();
+  DynamicJsonDocument doc(200);
+  JsonObject root = doc.to<JsonObject>();
 
-  response["Free Heap"] = ESP.getFreeHeap();
-  response["Free Sketch Space"] = ESP.getFreeSketchSpace();
-  response["Heap Fragmentation"] = ESP.getHeapFragmentation();
-  response["SDK Version"] = ESP.getSdkVersion();
+  root["freeHeap"] = ESP.getFreeHeap();
+  root["heapFragmentation"] = ESP.getHeapFragmentation();
 
-  char buffer[300];
-  serializeJson(response, buffer);
+  String response;
+  serializeJson(doc, response);
 
-  server.send(200, "application/json", buffer);
+  server.send(200, "application/json", response);
+}
+
+void API::run()
+{
+  server.handleClient();
 }
